@@ -1,19 +1,9 @@
-################################################################################
-#                                     COLORS                                   #
-################################################################################
+### LAYOUT ###
 
 DEFAULT			= \033[0m
 RED				= \033[1;31m
 GREEN			= \033[1;32m
-YELLOW			= \033[1;33m
-BLUE			= \033[1;34m
-MAGENTA			= \033[1;35m
 CYAN			= \033[1;36m
-WHITE			= \033[1;37m
-
-################################################################################
-#                                 PROGRESS BAR                                 #
-################################################################################
 
 define PROGRESS_BAR
 	@TOTAL_STEPS=20; CURRENT_STEP=0; \
@@ -25,23 +15,17 @@ define PROGRESS_BAR
 	echo " ✔️";
 endef
 
-################################################################################
-#                                     CONFIG                                   #
-################################################################################
+### VARIABLES ###
 
 NAME =			libft.a
 CC =			cc
 CFLAGS =		-Wall -Wextra -Werror
-AR =			ar rcs
-RM =			rm -f
-HEADER =		libft.h
 
-################################################################################
-#                                PROGRAM'S SOURCES                             #
-################################################################################
+SRC_PATH =		./src/
+OBJ_PATH =		./obj/
+INC_PATH =		./include/
 
-# Source files
-SRCS =			ft_isalpha.c \
+SRC_FILES =		ft_isalpha.c \
 				ft_isdigit.c \
 				ft_isalnum.c \
 				ft_isascii.c \
@@ -76,11 +60,7 @@ SRCS =			ft_isalpha.c \
 				ft_putnbr_fd.c \
 				ft_substr.c
 
-# Converts source file paths to object file paths
-OBJS =			$(SRCS:.c=.o)
-
-# Bonus files
-BONUS =			ft_lstnew_bonus.c \
+SRC_FILES_BONUS =	ft_lstnew_bonus.c \
 				ft_lstadd_front_bonus.c \
 				ft_lstsize_bonus.c \
 				ft_lstlast_bonus.c \
@@ -90,63 +70,50 @@ BONUS =			ft_lstnew_bonus.c \
 				ft_lstiter_bonus.c \
 				ft_lstmap_bonus.c
 
-BONUS_OBJS =	$(BONUS:.c=.o)
+SRC =			$(addprefix $(SRC_PATH), $(SRC_FILES))
+OBJ =			$(addprefix $(OBJ_PATH), $(SRC_FILES:.c=.o))
+SRC_BONUS =		$(addprefix $(SRC_PATH), $(SRC_FILES_BONUS))
+OBJ_BONUS =		$(addprefix $(OBJ_PATH), $(SRC_FILES_BONUS:.c=.o))
 
-################################################################################
-#                                     RULES                                    #
-################################################################################
+### RULES ###
 
-# Rule for compiling source files into object files
-%.o:			%.c $(HEADER)
-				@$(CC) $(CFLAGS) -c $< -o $@
+$(OBJ_PATH)%.o:	$(SRC_PATH)%.c
+				@mkdir -p $(dir $@)
+				@$(CC) $(CFLAGS) -I$(INC_PATH) -c $< -o $@
 
-# Rule for creating the library
-$(NAME):		$(OBJS)
-				@echo -n "\n🛠️  $(WHITE)Building $(CYAN)$(NAME)$(DEFAULT) library\t\t\t"
-				@$(AR) $(NAME) $(OBJS)
+$(NAME):		$(OBJ)
+				@echo -n "\n🛠️  Building $(CYAN)$(NAME)$(DEFAULT) library\t\t\t"
+				@ar rcs $(NAME) $(OBJ)
 				$(PROGRESS_BAR)
 				@echo ""
 
-# Default rule
 all:			$(NAME)
 
-# Rule for cleaning up object files
-clean:
-				@echo -n "\n🧹 $(RED)Cleaning up $(CYAN)libft $(DEFAULT)object files\t\t"
-				@$(RM) $(OBJS) $(BONUS_OBJS)
+bonus:			$(OBJ) $(OBJ_BONUS)
+				@echo -n "\n🎁 Creating $(CYAN)$(NAME)$(DEFAULT) with bonus\t\t"
+				@ar rcs $(NAME) $(OBJ) $(OBJ_BONUS)
 				$(PROGRESS_BAR)
+				@echo ""
 
-# Full clean rule (objects files, executable and libraries)
+clean:
+				@echo -n "\n🧹 $(RED)Cleaning up $(CYAN)project $(DEFAULT)object files\t\t"
+				@rm -rf $(OBJ)
+				$(PROGRESS_BAR)
+				@echo ""
+
 fclean:			clean
 				@echo -n "\n🗑️  $(RED)Deleting $(CYAN)$(NAME)$(DEFAULT) library\t\t\t"
-				@$(RM) $(NAME)
+				@rm -f $(NAME)
 				$(PROGRESS_BAR)
 				@echo ""
 
-# Rebuild rule
 re:				fclean all
 
-# Rule to compile bonus files
-bonus:			$(OBJS) $(BONUS_OBJS)
-				@echo -n "\n🎁 $(WHITE)Creating $(CYAN)$(NAME)$(DEFAULT) with bonus\t\t"
-				@$(AR) $(NAME) $(OBJS) $(BONUS_OBJS)
-				$(PROGRESS_BAR)
-				@echo ""
-
-# Rule to compile the program with debugging flags
-debug:			$(OBJS)
-				@echo -n "\n🔗 Compiling in $(CYAN)debug$(DEFAULT) mode\t\t\t"
-				@$(AR) $(NAME) $(OBJS)
-				$(PROGRESS_BAR)
-
-# Rule to display help
 help:
 				@echo "\n$(CYAN)all$(DEFAULT)		- Build the library $(NAME)"
 				@echo "$(CYAN)bonus$(DEFAULT)		- Build the library with bonus functions"
 				@echo "$(CYAN)clean$(DEFAULT)		- Clean up object files"
 				@echo "$(CYAN)fclean$(DEFAULT)		- Clean up all object files and library"
 				@echo "$(CYAN)re$(DEFAULT)		- Rebuild the entire project"
-				@echo "$(CYAN)debug$(DEFAULT)		- Compile with debugging information\n"
 
-# Rule to ensure that these targets are always executed as intended, even if there are files with the same name
-.PHONY:			all clean fclean re debug help bonus
+.PHONY:			all clean fclean re bonus help
